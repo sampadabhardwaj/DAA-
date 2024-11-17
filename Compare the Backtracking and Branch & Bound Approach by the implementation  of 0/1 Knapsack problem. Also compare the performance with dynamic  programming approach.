@@ -1,0 +1,109 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+// Structure to represent an item
+struct Item {
+    int value;
+    int weight;
+};
+
+// Function for Dynamic Programming Approach
+int knapsackDP(struct Item items[], int n, int W) {
+    int dp[n + 1][W + 1];
+
+    for (int i = 0; i <= n; i++) {
+        for (int w = 0; w <= W; w++) {
+            if (i == 0 || w == 0)
+                dp[i][w] = 0;
+            else if (items[i - 1].weight <= w)
+                dp[i][w] = (items[i - 1].value + dp[i - 1][w - items[i - 1].weight] > dp[i - 1][w])
+                            ? items[i - 1].value + dp[i - 1][w - items[i - 1].weight]
+                            : dp[i - 1][w];
+            else
+                dp[i][w] = dp[i - 1][w];
+        }
+    }
+
+    return dp[n][W];
+}
+
+// Backtracking Approach
+int knapsackBacktracking(struct Item items[], int n, int W, int i, int totalValue, int totalWeight) {
+    if (i == n) {
+        if (totalWeight <= W) {
+            return totalValue;
+        }
+        return 0;
+    }
+
+    // Include the current item
+    int include = 0;
+    if (totalWeight + items[i].weight <= W) {
+        include = knapsackBacktracking(items, n, W, i + 1, totalValue + items[i].value, totalWeight + items[i].weight);
+    }
+
+    // Exclude the current item
+    int exclude = knapsackBacktracking(items, n, W, i + 1, totalValue, totalWeight);
+
+    // Return the maximum of including or excluding the current item
+    return (include > exclude) ? include : exclude;
+}
+
+// Branch & Bound Approach
+int knapsackBranchBound(struct Item items[], int n, int W) {
+    struct Item sortedItems[n];
+    for (int i = 0; i < n; i++) {
+        sortedItems[i] = items[i];
+    }
+
+    // Sort items by value-to-weight ratio in descending order
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if ((double)sortedItems[i].value / sortedItems[i].weight < (double)sortedItems[j].value / sortedItems[j].weight) {
+                struct Item temp = sortedItems[i];
+                sortedItems[i] = sortedItems[j];
+                sortedItems[j] = temp;
+            }
+        }
+    }
+
+    int maxValue = 0;
+
+    // Recursive function for Branch & Bound
+    void bound(int i, int totalValue, int totalWeight) {
+        if (i >= n || totalWeight >= W) {
+            if (totalWeight <= W && totalValue > maxValue) {
+                maxValue = totalValue;
+            }
+            return;
+        }
+
+        // Include current item
+        if (totalWeight + sortedItems[i].weight <= W) {
+            bound(i + 1, totalValue + sortedItems[i].value, totalWeight + sortedItems[i].weight);
+        }
+
+        // Exclude current item
+        bound(i + 1, totalValue, totalWeight);
+    }
+
+    bound(0, 0, 0);
+    return maxValue;
+}
+
+int main() {
+    struct Item items[] = {
+        {60, 10},
+        {100, 20},
+        {120, 30}
+    };
+    int n = sizeof(items) / sizeof(items[0]);
+    int W = 50;  // Knapsack capacity
+
+    printf("Dynamic Programming Approach: Maximum value = %d\n", knapsackDP(items, n, W));
+    printf("Backtracking Approach: Maximum value = %d\n", knapsackBacktracking(items, n, W, 0, 0, 0));
+    printf("Branch & Bound Approach: Maximum value = %d\n", knapsackBranchBound(items, n, W));
+
+    return 0;
+}
