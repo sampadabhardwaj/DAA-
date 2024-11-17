@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Structure to represent an item
+struct Item {
+    int value;
+    int weight;
+};
+
+// Greedy Approach (value/weight ratio)
+int compare(const void* a, const void* b) {
+    double r1 = ((struct Item*)a)->value / (double)((struct Item*)a)->weight;
+    double r2 = ((struct Item*)b)->value / (double)((struct Item*)b)->weight;
+    if (r1 < r2) return 1;
+    else return -1;
+}
+
+int greedyKnapsack(struct Item items[], int n, int W) {
+    qsort(items, n, sizeof(struct Item), compare); // Sort items by value/weight ratio
+
+    int totalValue = 0, totalWeight = 0;
+    for (int i = 0; i < n; i++) {
+        if (totalWeight + items[i].weight <= W) {
+            totalWeight += items[i].weight;
+            totalValue += items[i].value;
+        }
+    }
+    return totalValue;
+}
+
+// Dynamic Programming Approach
+int knapsackDP(int W, struct Item items[], int n) {
+    int dp[n + 1][W + 1];
+
+    // Initialize DP table
+    for (int i = 0; i <= n; i++) {
+        for (int w = 0; w <= W; w++) {
+            if (i == 0 || w == 0)
+                dp[i][w] = 0;
+            else if (items[i - 1].weight <= w)
+                dp[i][w] = (items[i - 1].value + dp[i - 1][w - items[i - 1].weight] > dp[i - 1][w])
+                            ? items[i - 1].value + dp[i - 1][w - items[i - 1].weight]
+                            : dp[i - 1][w];
+            else
+                dp[i][w] = dp[i - 1][w];
+        }
+    }
+
+    return dp[n][W];
+}
+
+int main() {
+    struct Item items[] = {
+        {60, 10},
+        {100, 20},
+        {120, 30}
+    };
+    int n = sizeof(items) / sizeof(items[0]);
+    int W = 50;  // Knapsack capacity
+
+    printf("Greedy Approach: Maximum value = %d\n", greedyKnapsack(items, n, W));
+    printf("Dynamic Programming Approach: Maximum value = %d\n", knapsackDP(W, items, n));
+
+    return 0;
+}
