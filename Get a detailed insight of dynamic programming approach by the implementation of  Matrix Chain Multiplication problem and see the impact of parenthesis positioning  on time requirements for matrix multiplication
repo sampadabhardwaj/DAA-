@@ -1,0 +1,63 @@
+#include <stdio.h>
+#include <limits.h>
+
+// Function to perform Matrix Chain Multiplication using Dynamic Programming
+int matrixChainOrder(int p[], int n) {
+    int m[n][n]; // m[i][j] will store the minimum number of multiplications needed to multiply matrices A[i]...A[j]
+    int s[n][n]; // s[i][j] will store the index where the optimal split occurs
+    
+    // Initialize the m matrix to 0 for single matrices
+    for (int i = 1; i < n; i++) {
+        m[i][i] = 0;
+    }
+
+    // Loop over the chain length
+    for (int len = 2; len < n; len++) {
+        for (int i = 1; i < n - len + 1; i++) {
+            int j = i + len - 1;
+            m[i][j] = INT_MAX;
+
+            // Try every possible split point and compute the cost
+            for (int k = i; k <= j - 1; k++) {
+                int q = m[i][k] + m[k + 1][j] + p[i - 1] * p[k] * p[j];
+
+                if (q < m[i][j]) {
+                    m[i][j] = q;
+                    s[i][j] = k;
+                }
+            }
+        }
+    }
+
+    // Return the minimum number of multiplications
+    return m[1][n - 1];
+}
+
+// Function to print the optimal parenthesis structure
+void printOptimalParenthesis(int s[][5], int i, int j) {
+    if (i == j) {
+        printf("A%d", i);
+    } else {
+        printf("(");
+        printOptimalParenthesis(s, i, s[i][j]);
+        printOptimalParenthesis(s, s[i][j] + 1, j);
+        printf(")");
+    }
+}
+
+int main() {
+    // Dimensions of matrices (p[i-1] x p[i] for matrix A_i)
+    int p[] = {30, 35, 15, 5, 10, 20, 25};  // 6 matrices with dimensions 30x35, 35x15, 15x5, 5x10, 10x20, 20x25
+    int n = sizeof(p) / sizeof(p[0]);
+
+    // Call the Matrix Chain Order function
+    int result = matrixChainOrder(p, n);
+
+    // Output the result
+    printf("Minimum number of multiplications is: %d\n", result);
+    printf("Optimal parenthesization is: ");
+    printOptimalParenthesis(s, 1, n - 1);
+    printf("\n");
+
+    return 0;
+}
