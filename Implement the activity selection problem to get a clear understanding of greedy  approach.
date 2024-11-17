@@ -1,0 +1,49 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Activity structure to store start and finish times
+struct Activity {
+    int start;
+    int finish;
+};
+
+// Function to compare activities based on finish time
+int compare(const void *a, const void *b) {
+    struct Activity *activityA = (struct Activity *)a;
+    struct Activity *activityB = (struct Activity *)b;
+    return activityA->finish - activityB->finish;
+}
+
+// Function to select the maximum number of activities
+void activitySelection(struct Activity activities[], int n) {
+    // Sort the activities based on finish time
+    qsort(activities, n, sizeof(struct Activity), compare);
+
+    // The first activity is always selected
+    printf("Selected activities are:\n");
+    int lastSelected = 0; // Index of the last selected activity
+    printf("Activity %d (Start: %d, Finish: %d)\n", lastSelected + 1, activities[lastSelected].start, activities[lastSelected].finish);
+
+    // Consider the rest of the activities
+    for (int i = 1; i < n; i++) {
+        // If this activity's start time is greater than or equal to the finish time of the last selected activity
+        if (activities[i].start >= activities[lastSelected].finish) {
+            // Select this activity
+            printf("Activity %d (Start: %d, Finish: %d)\n", i + 1, activities[i].start, activities[i].finish);
+            lastSelected = i; // Update last selected activity index
+        }
+    }
+}
+
+int main() {
+    // Example input: Array of activities (start, finish times)
+    struct Activity activities[] = {
+        {1, 3}, {3, 5}, {0, 6}, {5, 8}, {8, 9}, {5, 7}, {2, 4}
+    };
+    int n = sizeof(activities) / sizeof(activities[0]);
+
+    // Call the function to select the activities
+    activitySelection(activities, n);
+
+    return 0;
+}
